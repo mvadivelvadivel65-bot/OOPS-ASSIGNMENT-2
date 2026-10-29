@@ -1,0 +1,169 @@
+import java.util.*;
+import java.time.LocalDate;
+
+class Book {
+    int id;
+    String title;
+    boolean available = true;
+
+    Book(int id, String title) {
+        this.id = id;
+        this.title = title;
+    }
+}
+
+class Member {
+    int id;
+    ArrayList<Integer> borrowedBooks = new ArrayList<>();
+
+    Member(int id) {
+        this.id = id;
+    }
+}
+
+public class LibraryBookBorrowingSystem {
+
+    static ArrayList<Book> books = new ArrayList<>();
+    static ArrayList<Member> members = new ArrayList<>();
+
+    static final int MAX_LIMIT = 3;
+
+    static Book findBook(int id) {
+        for (Book b : books) {
+            if (b.id == id)
+                return b;
+        }
+        throw new IllegalArgumentException("Invalid Book ID!");
+    }
+
+    static Member findMember(int id) {
+        for (Member m : members) {
+            if (m.id == id)
+                return m;
+        }
+        throw new IllegalArgumentException("Invalid Member ID!");
+    }
+
+    static void searchBook(int id) {
+        Book b = findBook(id);
+        System.out.println("Book: " + b.title);
+        System.out.println("Available: " + b.available);
+    }
+
+    static void issueBook(int bid, int mid) {
+        Book b = findBook(bid);
+        Member m = findMember(mid);
+
+        if (!b.available)
+            throw new IllegalStateException("Book is unavailable!");
+
+        if (m.borrowedBooks.size() >= MAX_LIMIT)
+            throw new IllegalStateException("Borrowing limit exceeded!");
+
+        b.available = false;
+        m.borrowedBooks.add(bid);
+
+        System.out.println("Book issued successfully!");
+    }
+
+    static void returnBook(int bid, int mid,
+                           LocalDate borrowDate,
+                           LocalDate returnDate) {
+        Book b = findBook(bid);
+        Member m = findMember(mid);
+
+        if (!m.borrowedBooks.contains(bid))
+            throw new IllegalStateException(
+                "This member has not borrowed this book!");
+
+        if (returnDate.isBefore(borrowDate))
+            throw new IllegalArgumentException(
+                "Invalid return date!");
+
+        m.borrowedBooks.remove(Integer.valueOf(bid));
+        b.available = true;
+
+        System.out.println("Book returned successfully!");
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        books.add(new Book(101, "Java Programming"));
+        books.add(new Book(102, "Data Structures"));
+        books.add(new Book(103, "Database Systems"));
+
+        members.add(new Member(1));
+        members.add(new Member(2));
+
+        while (true) {
+            try {
+                System.out.println("\n--- LIBRARY SYSTEM ---");
+                System.out.println("1. Search Book");
+                System.out.println("2. Issue Book");
+                System.out.println("3. Return Book");
+                System.out.println("4. Exit");
+                System.out.print("Enter choice: ");
+
+                int choice = sc.nextInt();
+
+                if (choice == 4) {
+                    System.out.println("Thank you!");
+                    break;
+                }
+
+                switch (choice) {
+                    case 1:
+                        System.out.print("Enter Book ID: ");
+                        searchBook(sc.nextInt());
+                        break;
+
+                    case 2:
+                        System.out.print("Enter Book ID: ");
+                        int bid = sc.nextInt();
+
+                        System.out.print("Enter Member ID: ");
+                        int mid = sc.nextInt();
+
+                        issueBook(bid, mid);
+                        break;
+
+                    case 3:
+                        System.out.print("Enter Book ID: ");
+                        int rb = sc.nextInt();
+
+                        System.out.print("Enter Member ID: ");
+                        int rm = sc.nextInt();
+
+                        System.out.print(
+                            "Enter borrow date (YYYY-MM-DD): ");
+                        LocalDate bd =
+                            LocalDate.parse(sc.next());
+
+                        System.out.print(
+                            "Enter return date (YYYY-MM-DD): ");
+                        LocalDate rd =
+                            LocalDate.parse(sc.next());
+
+                        returnBook(rb, rm, bd, rd);
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+
+            } catch (IllegalArgumentException |
+                     IllegalStateException e) {
+                System.out.println("Error: " + e.getMessage());
+
+            } catch (Exception e) {
+                System.out.println(
+                    "Invalid input or date format!");
+                sc.nextLine();
+            }
+   }
+
+        sc.close();
+    }
+}
